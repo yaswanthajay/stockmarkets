@@ -1,40 +1,25 @@
 import streamlit as st
-import pandas as pd
-import joblib
-
-from fetch_data import load_stock_data
-from features import add_features
-from news_sentiment import analyze_sentiment
-from model import train_model
+import numpy as np
+from fetch_data import load_and_process_data
+from prepare_data import create_lstm_dataset
+from model import load_trained_model
 
 st.set_page_config(page_title="📈 MarketPulse AI", layout="centered")
-st.title("📈 AI Stock Market Predictor with Explainability")
-st.markdown("Enter a stock ticker to view predictions based on past data + sentiment.")
+st.title("📈 AI-Powered Stock Market Predictor")
 
-stock = st.text_input("Enter Stock Ticker (e.g., AAPL, TSLA):", value="AAPL")
+ticker = st.text_input("Enter Stock Ticker (e.g., AAPL, TSLA)", value="AAPL")
 
-if st.button("🔮 Train Model & Predict"):
-    with st.spinner("Training model and predicting..."):
-        try:
-            # Load & process data
-            data = load_stock_data(stock)
-            data = add_features(data)
+if st.button("🔍 Predict Next Closing Price"):
+    try:
+        data = load_and_process_data(ticker)
+        features = ['Close', 'rsi', 'macd', 'bollinger_h', 'bollinger_l', 'volume_avg']
+        X, y = create_lstm_dataset(data, feature_cols=features, target_col='Close')
 
-            # Add sentiment score (dummy here)
-            sentiment_score = analyze_sentiment(stock)
-            data['Sentiment'] = sentiment_score
+        model = load_trained_model()
+        next_pred = model.predict(X[-1].reshape(1, X.shape[1], X.shape[2]))
+        st.success(f"📊 Predicted next closing price: **${next_pred[0][0]:.2f}**")
 
-            # Train and save model
-            model = train_model(data)
+        st.line_chart(data[['Close']])
 
-            # Predict using the trained model
-            features = ['MA10', 'MA20', 'Sentiment']
-            data['Prediction'] = model.predict(data[features])
-
-            st.success("✅ Model trained and prediction done!")
-            st.line_chart(data[['Close', 'MA10', 'MA20', 'Prediction']])
-
-        except Exception as e:
-            st.error(f"❌ Error: {e}")
-
-st.caption("🕒 Model trains & updates daily for best accuracy.")
+    except Exception as e:
+        st.error(f"❌ Error: {e}")
