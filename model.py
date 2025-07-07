@@ -1,27 +1,21 @@
-import pandas as pd
-from sklearn.linear_model import LinearRegression
-import joblib
+from tensorflow.keras.models import Sequential, load_model
+from tensorflow.keras.layers import LSTM, Dropout, Dense
 
-def train_model(df):
-    """
-    Train a simple linear regression model to predict closing price
-    based on moving averages and optional sentiment.
-
-    Args:
-        df (pd.DataFrame): DataFrame with features and 'Close' price.
-
-    Returns:
-        model: Trained sklearn model
-    """
-    features = ['MA10', 'MA20']
-    if 'Sentiment' in df.columns:
-        features.append('Sentiment')
-
-    X = df[features]
-    y = df['Close']
-
-    model = LinearRegression()
-    model.fit(X, y)
-
-    joblib.dump(model, 'stock_model.pkl')
+def build_lstm_model(input_shape):
+    model = Sequential()
+    model.add(LSTM(50, return_sequences=True, input_shape=input_shape))
+    model.add(Dropout(0.2))
+    model.add(LSTM(50))
+    model.add(Dropout(0.2))
+    model.add(Dense(1))
+    model.compile(optimizer='adam', loss='mean_squared_error')
     return model
+
+def train_and_save_model(X_train, y_train, model_path='lstm_stock_model.h5'):
+    model = build_lstm_model(X_train.shape[1:])
+    model.fit(X_train, y_train, epochs=20, batch_size=32)
+    model.save(model_path)
+    return model
+
+def load_trained_model(model_path='lstm_stock_model.h5'):
+    return load_model(model_path)
