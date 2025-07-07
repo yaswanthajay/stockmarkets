@@ -4,3 +4,9 @@ joblib
 yfinance
 scikit-learn
 vaderSentiment
+numpy
+ta
+tensorflow
+scikit-learn
+matplotlib
+shap
