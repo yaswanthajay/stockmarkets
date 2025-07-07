@@ -1,17 +1,17 @@
 import yfinance as yf
+import pandas as pd
+import ta
 
-def load_stock_data(ticker, period='1y', interval='1d'):
-    """
-    Fetch historical stock data from Yahoo Finance.
+def load_and_process_data(ticker, period="1y"):
+    df = yf.download(ticker, period=period, progress=False)
+    df.dropna(inplace=True)
 
-    Args:
-        ticker (str): Stock symbol, e.g., 'AAPL'.
-        period (str): Data period (e.g., '1y' for 1 year).
-        interval (str): Data frequency (e.g., '1d' for daily).
+    df['rsi'] = ta.momentum.RSIIndicator(df['Close']).rsi()
+    df['macd'] = ta.trend.MACD(df['Close']).macd_diff()
+    bb = ta.volatility.BollingerBands(df['Close'])
+    df['bollinger_h'] = bb.bollinger_hband()
+    df['bollinger_l'] = bb.bollinger_lband()
+    df['volume_avg'] = df['Volume'].rolling(20).mean()
 
-    Returns:
-        pd.DataFrame: Stock data with columns like Open, High, Low, Close, Volume.
-    """
-    data = yf.download(ticker, period=period, interval=interval)
-    data.dropna(inplace=True)
-    return data
+    df.dropna(inplace=True)
+    return df
