@@ -1,17 +1,18 @@
 import yfinance as yf
 import pandas as pd
-import ta
+import ta  # Technical Analysis library
 
-def load_and_process_data(ticker, period="1y"):
-    df = yf.download(ticker, period=period, progress=False)
-    df.dropna(inplace=True)
-
+def load_and_process_data(ticker):
+    df = yf.download(ticker, period="6mo", interval="1d")
+    
+    # Add technical indicators
     df['rsi'] = ta.momentum.RSIIndicator(df['Close']).rsi()
-    df['macd'] = ta.trend.MACD(df['Close']).macd_diff()
-    bb = ta.volatility.BollingerBands(df['Close'])
-    df['bollinger_h'] = bb.bollinger_hband()
-    df['bollinger_l'] = bb.bollinger_lband()
-    df['volume_avg'] = df['Volume'].rolling(20).mean()
+    df['macd'] = ta.trend.MACD(df['Close']).macd()
+    df['bollinger_h'] = ta.volatility.BollingerBands(df['Close']).bollinger_hband()
+    df['bollinger_l'] = ta.volatility.BollingerBands(df['Close']).bollinger_lband()
+    df['volume_avg'] = df['Volume'].rolling(window=10).mean()
 
-    df.dropna(inplace=True)
+    # Drop rows with missing values
+    df = df.dropna()
+    
     return df
