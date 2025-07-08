@@ -1,21 +1,29 @@
 import streamlit as st
-from fetch_data import load_and_process_data
-from model import load_trained_model, predict
 import pandas as pd
 import numpy as np
+from fetch_data import load_and_process_data
+from model import load_trained_model
+from sklearn.preprocessing import MinMaxScaler
 
-st.set_page_config(page_title="📈 Stock Predictor", layout="centered")
-st.title("📊 Stock Market Predictor")
-st.write("Enter a stock symbol (e.g., AAPL, MSFT) to predict next day's price.")
+st.title("📈 Stock Market Predictor – MarketPulse Clone")
 
-ticker = st.text_input("Stock Symbol", "AAPL")
+ticker = st.text_input("Enter stock symbol:", "AAPL")
 
 if st.button("Predict"):
-    try:
-        df = load_and_process_data(ticker)
-        model = load_trained_model()
-        price = predict(df, model)
-        st.success(f"Predicted price for tomorrow: **${price:.2f}**")
-        st.line_chart(df['Close'])
-    except Exception as e:
-        st.error(f"Error: {e}")
+    df = load_and_process_data(ticker)
+    model = load_trained_model()
+    
+    # Preprocessing for prediction
+    data = df[['Close']].values
+    scaler = MinMaxScaler()
+    scaled_data = scaler.fit_transform(data)
+
+    last_60_days = scaled_data[-60:]
+    X_test = np.reshape(last_60_days, (1, 60, 1))
+
+    prediction = model.predict(X_test)
+    predicted_price = scaler.inverse_transform(prediction)
+
+    st.success(f"📊 Predicted price: {predicted_price[0][0]:.2f} USD")
+
+    st.line_chart(df['Close'])
