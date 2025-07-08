@@ -1,47 +1,16 @@
-# train_model.py
-import yfinance as yf
-import numpy as np
-import pandas as pd
-from sklearn.preprocessing import MinMaxScaler
+# quick_train.py
 from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense, LSTM
+from tensorflow.keras.layers import LSTM, Dense
+import numpy as np
 
-def load_data(ticker="AAPL", start="2015-01-01", end="2023-01-01"):
-    df = yf.download(ticker, start=start, end=end)
-    df = df[['Close']]
-    return df
+X = np.random.rand(100, 60, 1)
+y = np.random.rand(100, 1)
 
-def preprocess_data(df):
-    scaler = MinMaxScaler()
-    scaled_data = scaler.fit_transform(df)
+model = Sequential()
+model.add(LSTM(50, return_sequences=True, input_shape=(60, 1)))
+model.add(LSTM(50))
+model.add(Dense(1))
+model.compile(optimizer='adam', loss='mean_squared_error')
+model.fit(X, y, epochs=1, batch_size=32)
 
-    X, y = [], []
-    window = 60
-    for i in range(window, len(scaled_data)):
-        X.append(scaled_data[i - window:i, 0])
-        y.append(scaled_data[i, 0])
-
-    X = np.array(X)
-    y = np.array(y)
-    X = np.reshape(X, (X.shape[0], X.shape[1], 1))
-
-    return X, y, scaler
-
-def train_model(X, y):
-    model = Sequential()
-    model.add(LSTM(units=50, return_sequences=True, input_shape=(X.shape[1], 1)))
-    model.add(LSTM(units=50))
-    model.add(Dense(1))
-    model.compile(optimizer='adam', loss='mean_squared_error')
-    model.fit(X, y, epochs=10, batch_size=32)
-    return model
-
-def save_model(model):
-    model.save("my_model.h5")
-    print("✅ Model saved as my_model.h5")
-
-if __name__ == "__main__":
-    df = load_data("AAPL")
-    X, y, scaler = preprocess_data(df)
-    model = train_model(X, y)
-    save_model(model)
+model.save("my_model.h5")
