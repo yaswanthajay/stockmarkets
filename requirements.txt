@@ -5,3 +5,4 @@ speechrecognition
 transformers
 torch
 yfinance
+ta
