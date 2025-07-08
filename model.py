@@ -1,21 +1,10 @@
-from tensorflow.keras.models import Sequential, load_model
-from tensorflow.keras.layers import LSTM, Dropout, Dense
+from tensorflow.keras.models import load_model
+import numpy as np
 
-def build_lstm_model(input_shape):
-    model = Sequential()
-    model.add(LSTM(50, return_sequences=True, input_shape=input_shape))
-    model.add(Dropout(0.2))
-    model.add(LSTM(50))
-    model.add(Dropout(0.2))
-    model.add(Dense(1))
-    model.compile(optimizer='adam', loss='mean_squared_error')
-    return model
+def load_trained_model(path='my_model.h5'):
+    return load_model(path)
 
-def train_and_save_model(X_train, y_train, model_path='lstm_stock_model.h5'):
-    model = build_lstm_model(X_train.shape[1:])
-    model.fit(X_train, y_train, epochs=20, batch_size=32)
-    model.save(model_path)
-    return model
-
-def load_trained_model(model_path='lstm_stock_model.h5'):
-    return load_model(model_path)
+def predict(data_dict, model):
+    X = data_dict['scaled_input'][-1].reshape(1, 60, 1)
+    prediction = model.predict(X)
+    return data_dict['scaler'].inverse_transform(prediction)[0][0]
