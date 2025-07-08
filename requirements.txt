@@ -5,5 +5,5 @@ speechrecognition
 transformers
 torch
 yfinance
-ta
-tensorflow
+tatensorflow==2.13.0
+
