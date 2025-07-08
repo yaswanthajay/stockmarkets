@@ -1,4 +1,3 @@
-# stockmarkets
 # 📈 Stock Market Predictor App
 
 A Streamlit-based stock price prediction app using LSTM and Yahoo Finance.
