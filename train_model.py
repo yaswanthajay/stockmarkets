@@ -1,16 +1,18 @@
-# quick_train.py
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import LSTM, Dense
 import numpy as np
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense, LSTM
+from tensorflow.keras.optimizers import Adam
 
-X = np.random.rand(100, 60, 1)
-y = np.random.rand(100, 1)
+# Dummy time series data for training (replace with real stock data for production)
+X = np.random.rand(1000, 60, 1)
+y = np.random.rand(1000, 1)
 
-model = Sequential()
-model.add(LSTM(50, return_sequences=True, input_shape=(60, 1)))
-model.add(LSTM(50))
-model.add(Dense(1))
-model.compile(optimizer='adam', loss='mean_squared_error')
-model.fit(X, y, epochs=1, batch_size=32)
+model = Sequential([
+    LSTM(64, input_shape=(60, 1)),
+    Dense(1)
+])
+
+model.compile(optimizer=Adam(0.001), loss='mse')
+model.fit(X, y, epochs=5, batch_size=32)
 
 model.save("my_model.h5")
